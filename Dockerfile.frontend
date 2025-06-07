@@ -1,0 +1,24 @@
+# Frontend - finsense-ai
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy only package files first
+COPY package*.json ./
+COPY nx.json ./
+COPY tsconfig.base.json ./
+COPY apps/finsense-ai ./apps/finsense-ai
+COPY eslint.config.mjs ./
+
+# Install dependencies
+RUN npm install
+
+# Build frontend
+RUN npx nx build finsense-ai
+
+# Serve frontend with a static server (e.g., serve)
+RUN npm install -g serve
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist/apps/finsense-ai", "-l", "3000"]

@@ -1,0 +1,24 @@
+# Backend - api
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy only package files for faster Docker caching
+COPY package*.json ./
+COPY nx.json ./
+COPY tsconfig.base.json ./
+COPY apps/api ./apps/api
+COPY eslint.config.mjs ./
+
+# Install dependencies
+RUN npm install
+
+# Build the backend
+RUN npx nx build api
+
+# Expose the port
+EXPOSE 4000
+
+# Start the server
+CMD ["node", "dist/apps/api/main.js"]

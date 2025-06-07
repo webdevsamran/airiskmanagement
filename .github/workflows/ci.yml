@@ -1,0 +1,101 @@
+# name: CI
+
+# on:
+#   push:
+#     branches:
+#       - master
+#   pull_request:
+
+# permissions:
+#   actions: read
+#   contents: read
+
+# jobs:
+#   main:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           filter: tree:0
+#           fetch-depth: 0
+
+
+#       # This enables task distribution via Nx Cloud
+#       # Run this command as early as possible, before dependencies are installed
+#       # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
+#       # Uncomment this line to enable task distribution
+#       # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
+
+
+#       # Cache node_modules
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+#           cache: 'npm'
+
+#       - run: npm ci --legacy-peer-deps
+#       - uses: nrwl/nx-set-shas@v4
+
+#       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
+#       # - run: npx nx-cloud record -- echo Hello World
+#       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
+#       - run: npx nx affected -t lint test build
+
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      # Step 2: Setup Node.js and enable caching for node_modules
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # Step 3: Install all dependencies
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      # Step 4: Set SHAs to help Nx determine affected projects
+      - name: Set SHAs for Nx affected
+        uses: nrwl/nx-set-shas@v4
+
+      # Step 5: Lint only affected projects
+      - name: Lint affected projects
+        run: npx nx affected -t lint
+
+      # Step 6: Test only affected projects
+      - name: Test affected projects
+        run: npx nx affected -t test
+
+      # Step 7: Build only affected projects
+      - name: Build affected projects
+        id: build
+        run: npx nx affected -t build
+
+      # Step 8: Fallback build if nothing was affected (e.g., docs change)
+      - name: Fallback full build
+        if: success() && steps.build.outcome == 'skipped'
+        run: |
+          npx nx build api
+          npx nx build finsense-ai

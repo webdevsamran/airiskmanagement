@@ -1,0 +1,44 @@
+services:
+  # mongo:
+  #   image: mongo:6.0
+  #   container_name: mongo
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - nx-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - '4000:4000'
+    # environment:
+      # - NODE_ENV=production
+      # - MONGODB_URI=mongodb://mongo:27017/airiskmanagement
+    # depends_on:
+    #   - mongo
+    networks:
+      - nx-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - '4200:4200'
+    # environment:
+    #   - NODE_ENV=production
+    depends_on:
+      - api
+    networks:
+      - nx-network
+
+# volumes:
+#   mongo-data:
+
+networks:
+  nx-network:
+    driver: bridge

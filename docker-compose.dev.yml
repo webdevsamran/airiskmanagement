@@ -1,0 +1,54 @@
+services:
+  # mongo:
+  #   image: mongo:6.0
+  #   container_name: mongo
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - nx-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npx nx serve api
+    ports:
+      - '4000:4000'
+    # depends_on:
+    #   - mongo
+    # environment:
+      # - NODE_ENV=development
+      # - MONGODB_URI=mongodb://mongo:27017/airiskmanagement
+    networks:
+      - nx-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npx nx serve finsense-ai
+    ports:
+      - '4200:4200'
+    depends_on:
+      - api
+    # environment:
+    #   - NODE_ENV=development
+    networks:
+      - nx-network
+
+# volumes:
+#   mongo-data:
+
+networks:
+  nx-network:
+    driver: bridge
